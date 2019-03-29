@@ -2063,10 +2063,10 @@ class Zeroconf(QuietLogger):
         """Ends the background threads, and prevent this instance from
         servicing further queries."""
         if not self._GLOBAL_DONE:
-            self._GLOBAL_DONE = True
             # remove service listeners
             self.remove_all_service_listeners()
             self.unregister_all_services()
+            self._GLOBAL_DONE = True
 
             # shutdown recv socket and thread
             self.engine.del_reader(self._listen_socket)
