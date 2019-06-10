@@ -9,4 +9,4 @@ Thumbs.db
 .idea
 .vslick
 .cache
-
+*.egg-info

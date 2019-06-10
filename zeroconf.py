@@ -35,7 +35,7 @@ import threading
 import time
 from functools import reduce
 
-import netifaces
+import ifcfg
 from six import binary_type, indexbytes, int2byte, iteritems, text_type
 from six.moves import xrange
 
@@ -1582,20 +1582,19 @@ class ZeroconfServiceTypes(object):
         return tuple(sorted(listener.found_services))
 
 
-def get_all_addresses(address_family):
+def get_all_addresses():
     return list(set(
-        addr['addr']
-        for iface in netifaces.interfaces()
-        for addr in netifaces.ifaddresses(iface).get(address_family, [])
-        if addr.get('netmask') != HOST_ONLY_NETWORK_MASK
+        iface["inet"]
+        for iface in ifcfg.interfaces().values()
+        if iface["inet"]
     ))
 
 
-def normalize_interface_choice(choice, address_family):
+def normalize_interface_choice(choice):
     if choice is InterfaceChoice.Default:
         choice = ['0.0.0.0']
     elif choice is InterfaceChoice.All:
-        choice = get_all_addresses(address_family)
+        choice = get_all_addresses()
     return choice
 
 
@@ -1658,7 +1657,7 @@ class Zeroconf(QuietLogger):
         self._GLOBAL_DONE = False
 
         self._listen_socket = new_socket()
-        interfaces = normalize_interface_choice(interfaces, socket.AF_INET)
+        interfaces = normalize_interface_choice(interfaces)
 
         self._respond_sockets = []
 
