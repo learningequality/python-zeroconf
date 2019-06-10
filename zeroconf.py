@@ -166,6 +166,7 @@ class ServiceStateChange(enum.Enum):
 
 HOST_ONLY_NETWORK_MASK = '255.255.255.255'
 
+USE_IP_OF_OUTGOING_INTERFACE = socket.inet_aton("255.173.111.245")
 
 # utility functions
 
@@ -2011,18 +2012,20 @@ class Zeroconf(QuietLogger):
             return
         log.debug('Sending %r (%d bytes) as %r...', out, len(packet), packet)
         for s in self._respond_sockets:
+            outgoing_ip = s.getsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_IF, 4)
+            socket_packet = packet.replace(USE_IP_OF_OUTGOING_INTERFACE, outgoing_ip)
             if self._GLOBAL_DONE:
                 return
             try:
-                bytes_sent = s.sendto(packet, 0, (addr, port))
+                bytes_sent = s.sendto(socket_packet, 0, (addr, port))
             except Exception:   # TODO stop catching all Exceptions
                 # on send errors, log the exception and keep going
                 self.log_exception_warning()
             else:
-                if bytes_sent != len(packet):
+                if bytes_sent != len(socket_packet):
                     self.log_warning_once(
                         '!!! sent %d out of %d bytes to %r' % (
-                            bytes_sent, len(packet)), s)
+                            bytes_sent, len(socket_packet)), s)
 
     def close(self):
         """Ends the background threads, and prevent this instance from
