@@ -1,19 +1,11 @@
 python-zeroconf
 ===============
-
-.. image:: https://travis-ci.org/jstasiak/python-zeroconf.svg?branch=master
-    :target: https://travis-ci.org/jstasiak/python-zeroconf
     
-.. image:: https://img.shields.io/pypi/v/zeroconf.svg
-    :target: https://pypi.python.org/pypi/zeroconf
-
-.. image:: https://img.shields.io/coveralls/jstasiak/python-zeroconf.svg
-    :target: https://coveralls.io/r/jstasiak/python-zeroconf
-
-    
-This is fork of pyzeroconf, Multicast DNS Service Discovery for Python,
+This is a fork of pyzeroconf, Multicast DNS Service Discovery for Python,
 originally by Paul Scott-Murphy (https://github.com/paulsm/pyzeroconf),
-modified by William McBrine (https://github.com/wmcbrine/pyzeroconf).
+modified by William McBrine (https://github.com/wmcbrine/pyzeroconf),
+and then further modified (off the 0.19.1 tag, the last to support Py2.7)
+by Jamie Alexandre (https://github.com/learningequality/python-zeroconf).
 
 The original William McBrine's fork note::
 
@@ -38,7 +30,6 @@ Compared to some other Zeroconf/Bonjour/Avahi Python packages, python-zeroconf:
 * doesn't use D-Bus
 * doesn't force you to use particular event loop or Twisted
 * is pip-installable
-* has PyPI distribution
 
 Python compatibility
 --------------------
