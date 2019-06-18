@@ -1880,9 +1880,9 @@ class Zeroconf(QuietLogger):
         else:
             self.servicetypes[info.type] = 1
 
-        self._broadcast_service(info)
+        self._broadcast_service(info, ttl=ttl)
 
-    def update_service(self, info):
+    def update_service(self, info, ttl=_DNS_TTL):
         """Registers service information to the network with a default TTL.
         Zeroconf will then respond to requests for information for that
         service."""
@@ -1891,9 +1891,9 @@ class Zeroconf(QuietLogger):
 
         self.services[info.name.lower()] = info
 
-        self._broadcast_service(info)
+        self._broadcast_service(info, ttl=ttl)
 
-    def _broadcast_service(self, info):
+    def _broadcast_service(self, info, ttl=_DNS_TTL):
 
         now = current_time_millis()
         next_time = now
