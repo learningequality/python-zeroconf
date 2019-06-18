@@ -1,31 +1,9 @@
-python-zeroconf
-===============
-
-.. image:: https://travis-ci.org/jstasiak/python-zeroconf.svg?branch=master
-    :target: https://travis-ci.org/jstasiak/python-zeroconf
-    
-.. image:: https://img.shields.io/pypi/v/zeroconf.svg
-    :target: https://pypi.python.org/pypi/zeroconf
-
-.. image:: https://img.shields.io/coveralls/jstasiak/python-zeroconf.svg
-    :target: https://coveralls.io/r/jstasiak/python-zeroconf
-
+python-zeroconf-py2compat
+=========================
     
 This is fork of pyzeroconf, Multicast DNS Service Discovery for Python,
 originally by Paul Scott-Murphy (https://github.com/paulsm/pyzeroconf),
 modified by William McBrine (https://github.com/wmcbrine/pyzeroconf).
-
-The original William McBrine's fork note::
-
-    This fork is used in all of my TiVo-related projects: HME for Python
-    (and therefore HME/VLC), Network Remote, Remote Proxy, and pyTivo.
-    Before this, I was tracking the changes for zeroconf.py in three
-    separate repos. I figured I should have an authoritative source.
-    
-    Although I make changes based on my experience with TiVos, I expect that
-    they're generally applicable. This version also includes patches found
-    on the now-defunct (?) Launchpad repo of pyzeroconf, and elsewhere
-    around the net -- not always well-documented, sorry.
 
 Compatible with:
 
@@ -63,15 +41,15 @@ There are some people using this package. I don't actively use it and as such
 any help I can offer with regard to any issues is very limited.
 
 
-How to get python-zeroconf?
-===========================
+How to get python-zeroconf-py2compat?
+=====================================
 
-* PyPI page https://pypi.python.org/pypi/zeroconf
-* GitHub project https://github.com/jstasiak/python-zeroconf
+* PyPI page https://pypi.python.org/pypi/zeroconf-py2compat
+* GitHub project https://github.com/learningequality/python-zeroconf-py2compat
 
-The easiest way to install python-zeroconf is using pip::
+The easiest way to install python-zeroconf-py2compat is using pip::
 
-    pip install zeroconf
+    pip install zeroconf-py2compat
 
 
 
@@ -121,6 +99,20 @@ See examples directory for more.
 
 Changelog
 =========
+
+0.19.2 (first release in learningequality/python-zeroconf-py2compat)
+------
+* Replace C-based netifaces with pure-Python ifcfg for portability
+* Allow the DNS A record address to be determined by outgoing interface IP
+* Refresh ServiceBrowser entries already when 'stale' (backport from 0.20.0)
+* Add new records first in cache entry instead of last (backport from 0.20.0)
+* Correct broken __eq__ in child classes to DNSRecord (backport from 0.20.0)
+* Fix TTL handling for published service, and use RFC6762 (backport from 0.21.0)
+* Fix UnboundLocalError for count after loop (backport from 0.21.0)
+* Fix UTF-8 multibyte name compression (backport from 0.21.0)
+* Fix a logging call (backport from 0.21.0)
+* Fix service removal packets not being sent on shutdown (backport from 0.22.0)
+* MyListener callback on service TXT record changes (backport from 0.23.0)
 
 0.19.1
 ------
