@@ -26,7 +26,7 @@ setup(
     long_description=readme,
     author="Paul Scott-Murphy, William McBrine, Jakub Stasiak, Jamie Alexandre",
     url="https://github.com/learningequality/python-zeroconf",
-    py_modules=["zeroconf-py2compat"],
+    py_modules=["zeroconf"],
     platforms=["unix", "linux", "osx"],
     license="LGPL",
     zip_safe=False,

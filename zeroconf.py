@@ -40,7 +40,7 @@ from six.moves import xrange
 
 __author__ = "Paul Scott-Murphy, William McBrine"
 __maintainer__ = "Jakub Stasiak <jakub@stasiak.at>"
-__version__ = "0.19.2"
+__version__ = "0.19.3"
 __license__ = "LGPL"
 
 

@@ -101,8 +101,12 @@ See examples directory for more.
 Changelog
 =========
 
-0.19.2 (first release in learningequality/python-zeroconf-py2compat)
+0.19.3
 ------
+* Fix to setup.py, so as to actually include zeroconf.py!
+
+0.19.2 (first release in learningequality/python-zeroconf-py2compat)
+--------------------------------------------------------------------
 * Replace C-based netifaces with pure-Python ifcfg for portability
 * Allow the DNS A record address to be determined by outgoing interface IP
 * Refresh ServiceBrowser entries already when 'stale' (backport from 0.20.0)
