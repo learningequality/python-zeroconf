@@ -129,14 +129,14 @@ class PacketGeneration(unittest.TestCase):
         generated = r.DNSOutgoing(r._FLAGS_QR_RESPONSE)
         generated.add_answer_at_time(
             r.DNSService(
-                "æøå.local.",
+                u"æøå.local.",
                 r._TYPE_SRV,
                 r._CLASS_IN,
                 r._DNS_TTL,
                 0,
                 0,
                 80,
-                "foo.local.",
+                u"foo.local.",
             ),
             0,
         )
@@ -799,11 +799,11 @@ class ListenerTest(unittest.TestCase):
         service_removed = Event()
         service_updated = Event()
 
-        subtype_name = "My special Subtype"
-        type_ = "_http._tcp.local."
-        subtype = subtype_name + "._sub." + type_
-        name = "xxxyyyæøå"
-        registration_name = "%s.%s" % (name, subtype)
+        subtype_name = u"My special Subtype"
+        type_ = u"_http._tcp.local."
+        subtype = subtype_name + u"._sub." + type_
+        name = u"xxxyyy"
+        registration_name = u"%s.%s" % (name, subtype)
 
         class MyListener(object):
             def add_service(self, zeroconf, type, name):
@@ -891,7 +891,7 @@ class ListenerTest(unittest.TestCase):
                 "ash-2.local.",
             )
             zeroconf_registrar.update_service(info_service)
-            service_updated.wait(1)
+            service_updated.wait(2)
             assert service_updated.is_set()
 
             info = zeroconf_browser.get_service_info(type_, registration_name)
@@ -900,7 +900,7 @@ class ListenerTest(unittest.TestCase):
             # End material test addition
 
             zeroconf_registrar.unregister_service(info_service)
-            service_removed.wait(1)
+            service_removed.wait(2)
             assert service_removed.is_set()
 
         finally:

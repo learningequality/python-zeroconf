@@ -2237,11 +2237,13 @@ class Zeroconf(QuietLogger):
             return
         log.debug("Sending %r (%d bytes) as %r...", out, len(packet), packet)
         for s in self._respond_sockets:
-            outgoing_ip = s.getsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_IF, 4)
-            socket_packet = packet.replace(USE_IP_OF_OUTGOING_INTERFACE, outgoing_ip)
             if self._GLOBAL_DONE:
                 return
             try:
+                outgoing_ip = s.getsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_IF, 4)
+                socket_packet = packet.replace(
+                    USE_IP_OF_OUTGOING_INTERFACE, outgoing_ip
+                )
                 bytes_sent = s.sendto(socket_packet, 0, (addr, port))
             except Exception:  # TODO stop catching all Exceptions
                 # on send errors, log the exception and keep going
