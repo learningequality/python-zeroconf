@@ -26,7 +26,7 @@ setup(
     long_description=readme,
     author="Paul Scott-Murphy, William McBrine, Jakub Stasiak, Jamie Alexandre",
     url="https://github.com/learningequality/python-zeroconf",
-    py_modules=["zeroconf"],
+    py_modules=["zeroconf", "enum_compat"],
     platforms=["unix", "linux", "osx"],
     license="LGPL",
     zip_safe=False,
@@ -59,5 +59,5 @@ setup(
         "Service Discovery",
         "mDNS",
     ],
-    install_requires=["enum-compat", "ifcfg", "six"],
+    install_requires=["ifcfg", "six"],
 )
