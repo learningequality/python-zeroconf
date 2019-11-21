@@ -22,7 +22,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
     USA
 """
 
-import enum
 import errno
 import logging
 import re
@@ -37,6 +36,8 @@ from functools import reduce
 import ifcfg
 from six import binary_type, indexbytes, int2byte, iteritems, text_type
 from six.moves import xrange
+
+import enum_compat as enum
 
 __author__ = "Paul Scott-Murphy, William McBrine"
 __maintainer__ = "Jakub Stasiak <jakub@stasiak.at>"
