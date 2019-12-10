@@ -40,8 +40,8 @@ from six.moves import xrange
 import enum_compat as enum
 
 __author__ = "Paul Scott-Murphy, William McBrine"
-__maintainer__ = "Jakub Stasiak <jakub@stasiak.at>"
-__version__ = "0.19.3"
+__maintainer__ = "Richard Tibbles <richard@learningequality.org>"
+__version__ = "0.19.4"
 __license__ = "LGPL"
 
 
