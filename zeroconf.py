@@ -24,6 +24,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import errno
 import logging
+import os
 import re
 import select
 import socket
@@ -1705,9 +1706,41 @@ class ZeroconfServiceTypes(object):
         return tuple(sorted(listener.found_services))
 
 
+if "ANDROID_ARGUMENT" in os.environ:
+    from jnius import autoclass
+
+    AndroidString = autoclass("java.lang.String")
+
+    def get_network_interfaces():
+        interfaces = []
+        try:
+            NetworkInterface = autoclass("java.net.NetworkInterface")
+            Inet4Address = autoclass("java.net.Inet4Address")
+            ifaces = NetworkInterface.getNetworkInterfaces()
+            while ifaces and ifaces.hasMoreElements():
+                iface = ifaces.nextElement()
+                ips = iface.getInetAddresses()
+                while ips and ips.hasMoreElements():
+                    ip = ips.nextElement()
+                    # There are no methods for checking IP address type, so check object type.
+                    address = ip.getHostAddress()
+                    if isinstance(ip, Inet4Address):
+                        interfaces.append({'inet': address})
+                    else:
+                        interfaces.append({'inet6': address})
+        except Exception as e:
+            raise e
+
+        return interfaces
+
+else:
+     def get_network_interfaces():
+         return ifcfg.interfaces().values()
+
+
 def get_all_addresses():
     return list(
-        set(iface["inet"] for iface in ifcfg.interfaces().values() if iface["inet"])
+        set(iface["inet"] for iface in get_network_interfaces() if iface["inet"])
     )
 
 
