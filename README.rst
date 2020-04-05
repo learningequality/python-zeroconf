@@ -101,6 +101,14 @@ See examples directory for more.
 Changelog
 =========
 
+0.19.5
+------
+Add support for Android, via pyjnius.
+
+0.19.4
+------
+Vendored enum compat.
+
 0.19.3
 ------
 * Fix to setup.py, so as to actually include zeroconf.py!

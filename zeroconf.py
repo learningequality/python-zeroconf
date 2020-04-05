@@ -24,6 +24,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import errno
 import logging
+import os
 import re
 import select
 import socket
@@ -40,8 +41,8 @@ from six.moves import xrange
 import enum_compat as enum
 
 __author__ = "Paul Scott-Murphy, William McBrine"
-__maintainer__ = "Richard Tibbles <richard@learningequality.org>"
-__version__ = "0.19.4"
+__maintainer__ = "Jamie Alexandre <jamie@learningequality.org>"
+__version__ = "0.19.5"
 __license__ = "LGPL"
 
 
@@ -1705,9 +1706,41 @@ class ZeroconfServiceTypes(object):
         return tuple(sorted(listener.found_services))
 
 
+if "ANDROID_ARGUMENT" in os.environ:
+    from jnius import autoclass
+
+    AndroidString = autoclass("java.lang.String")
+
+    def get_network_interfaces():
+        interfaces = []
+        try:
+            NetworkInterface = autoclass("java.net.NetworkInterface")
+            Inet4Address = autoclass("java.net.Inet4Address")
+            ifaces = NetworkInterface.getNetworkInterfaces()
+            while ifaces and ifaces.hasMoreElements():
+                iface = ifaces.nextElement()
+                ips = iface.getInetAddresses()
+                while ips and ips.hasMoreElements():
+                    ip = ips.nextElement()
+                    # There are no methods for checking IP address type, so check object type.
+                    address = ip.getHostAddress()
+                    if isinstance(ip, Inet4Address):
+                        interfaces.append({"inet": address, "inet6": ""})
+                    else:
+                        interfaces.append({"inet": "", "inet6": address})
+        except Exception as e:
+            raise e
+
+        return interfaces
+
+else:
+     def get_network_interfaces():
+         return ifcfg.interfaces().values()
+
+
 def get_all_addresses():
     return list(
-        set(iface["inet"] for iface in ifcfg.interfaces().values() if iface["inet"])
+        set(iface["inet"] for iface in get_network_interfaces() if iface["inet"])
     )
 
 
