@@ -1725,9 +1725,9 @@ if "ANDROID_ARGUMENT" in os.environ:
                     # There are no methods for checking IP address type, so check object type.
                     address = ip.getHostAddress()
                     if isinstance(ip, Inet4Address):
-                        interfaces.append({'inet': address})
+                        interfaces.append({"inet": address, "inet6": ""})
                     else:
-                        interfaces.append({'inet6': address})
+                        interfaces.append({"inet": "", "inet6": address})
         except Exception as e:
             raise e
 
