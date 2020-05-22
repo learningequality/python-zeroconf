@@ -21,3 +21,14 @@ test_coverage:
 
 autopep8:
 	autopep8 --max-line-length=$(MAX_LINE_LENGTH) -i examples *.py
+
+clean:
+	rm -r dist
+
+dist: clean
+	python setup.py sdist --format=gztar > /dev/null # silence the sdist output! Too noisy!
+	python setup.py bdist_wheel
+	ls -l dist
+
+release: dist
+	twine upload -s dist/*
