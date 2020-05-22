@@ -59,5 +59,5 @@ setup(
         "Service Discovery",
         "mDNS",
     ],
-    install_requires=["ifcfg", "six"],
+    install_requires=["ifaddr", "six"],
 )
