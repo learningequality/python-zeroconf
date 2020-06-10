@@ -34,7 +34,7 @@ import threading
 import time
 from functools import reduce
 
-import ifaddr
+import ifcfg
 from six import binary_type, indexbytes, int2byte, iteritems, text_type
 from six.moves import xrange
 
@@ -1735,14 +1735,7 @@ if "ANDROID_ARGUMENT" in os.environ:
 
 else:
      def get_network_interfaces():
-         interfaces = []
-         for adapter in ifaddr.get_adapters():
-             for ip in adapter.ips:
-                 interfaces.append({
-                     "inet": ip.ip if ip.is_IPv4 else "",
-                     "inet6": ip.ip if ip.is_IPv6 else ""
-                 })
-         return interfaces
+         return ifcfg.interfaces().values()
 
 
 def get_all_addresses():
