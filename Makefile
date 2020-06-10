@@ -23,7 +23,7 @@ autopep8:
 	autopep8 --max-line-length=$(MAX_LINE_LENGTH) -i examples *.py
 
 clean:
-	rm -r dist
+	rm -r dist || true
 
 dist: clean
 	python setup.py sdist --format=gztar > /dev/null # silence the sdist output! Too noisy!
