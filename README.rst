@@ -101,6 +101,14 @@ See examples directory for more.
 Changelog
 =========
 
+0.19.7
+------
+Reverted from ifaddr back to ifcfg.
+
+0.19.6
+------
+Switched from ifcfg to ifaddr for address enumeration.
+
 0.19.5
 ------
 Add support for Android, via pyjnius.
