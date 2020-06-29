@@ -42,7 +42,7 @@ import enum_compat as enum
 
 __author__ = "Paul Scott-Murphy, William McBrine"
 __maintainer__ = "Jamie Alexandre <jamie@learningequality.org>"
-__version__ = "0.19.7"
+__version__ = "0.19.8"
 __license__ = "LGPL"
 
 
@@ -1707,6 +1707,7 @@ class ZeroconfServiceTypes(object):
 
 
 if "ANDROID_ARGUMENT" in os.environ:
+
     from jnius import autoclass
 
     AndroidString = autoclass("java.lang.String")
@@ -1729,13 +1730,17 @@ if "ANDROID_ARGUMENT" in os.environ:
                     else:
                         interfaces.append({"inet": "", "inet6": address})
         except Exception as e:
-            raise e
+            return []
 
         return interfaces
 
 else:
+
      def get_network_interfaces():
-         return ifcfg.interfaces().values()
+        try:
+            return ifcfg.interfaces().values()
+        except:  # ifcfg throws an Exception if the ip/ifconfig commands are not found
+            return []
 
 
 def get_all_addresses():
