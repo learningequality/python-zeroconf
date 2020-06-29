@@ -101,6 +101,10 @@ See examples directory for more.
 Changelog
 =========
 
+0.19.8
+------
+Handle exceptions in interface enumeration and just return an empty list.
+
 0.19.7
 ------
 Reverted from ifaddr back to ifcfg.
