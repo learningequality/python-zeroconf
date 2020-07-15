@@ -101,6 +101,10 @@ See examples directory for more.
 Changelog
 =========
 
+0.19.9
+------
+Turn _GLOBAL_DONE into a threading Event to allow for better interruptability at close.
+
 0.19.8
 ------
 Handle exceptions in interface enumeration and just return an empty list.
