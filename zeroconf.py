@@ -1734,9 +1734,10 @@ if "ANDROID_ARGUMENT" in os.environ:
 
         return interfaces
 
+
 else:
 
-     def get_network_interfaces():
+    def get_network_interfaces():
         try:
             return ifcfg.interfaces().values()
         except:  # ifcfg throws an Exception if the ip/ifconfig commands are not found
@@ -1810,7 +1811,7 @@ class Zeroconf(QuietLogger):
         :type interfaces: :class:`InterfaceChoice` or sequence of ip addresses
         """
         # hook for threads
-        self._GLOBAL_DONE = False
+        self._GLOBAL_DONE = threading.Event()
 
         self._listen_socket = new_socket()
         interfaces = normalize_interface_choice(interfaces)
@@ -1867,7 +1868,7 @@ class Zeroconf(QuietLogger):
 
     @property
     def done(self):
-        return self._GLOBAL_DONE
+        return self._GLOBAL_DONE.wait(0.1)
 
     def wait(self, timeout):
         """Calling thread waits for a given number of milliseconds or
@@ -2276,7 +2277,7 @@ class Zeroconf(QuietLogger):
             return
         log.debug("Sending %r (%d bytes) as %r...", out, len(packet), packet)
         for s in self._respond_sockets:
-            if self._GLOBAL_DONE:
+            if self._GLOBAL_DONE.is_set():
                 return
             try:
                 outgoing_ip = s.getsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_IF, 4)
@@ -2297,11 +2298,11 @@ class Zeroconf(QuietLogger):
     def close(self):
         """Ends the background threads, and prevent this instance from
         servicing further queries."""
-        if not self._GLOBAL_DONE:
+        if not self._GLOBAL_DONE.is_set():
             # remove service listeners
             self.remove_all_service_listeners()
             self.unregister_all_services()
-            self._GLOBAL_DONE = True
+            self._GLOBAL_DONE.set()
 
             # shutdown recv socket and thread
             self.engine.del_reader(self._listen_socket)
