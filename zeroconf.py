@@ -1798,7 +1798,7 @@ def get_errno(e):
 
 def get_global_done_wait_time():
     wait_time = os.getenv('PYTHON_ZEROCONF_GLOBAL_DONE_WAIT_TIME')
-    return float(wait_time) if wait_time else 0.01
+    return float(wait_time) if wait_time else 0.001
 
 class Zeroconf(QuietLogger):
 
