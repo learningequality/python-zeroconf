@@ -1796,6 +1796,9 @@ def get_errno(e):
     assert isinstance(e, socket.error)
     return e.args[0]
 
+def get_global_done_wait_time():
+    wait_time = os.getenv('PYTHON_ZEROCONF_GLOBAL_DONE_WAIT_TIME')
+    return float(wait_time) if wait_time else 0.01
 
 class Zeroconf(QuietLogger):
 
@@ -1868,7 +1871,8 @@ class Zeroconf(QuietLogger):
 
     @property
     def done(self):
-        return self._GLOBAL_DONE.wait(0.1)
+        wait_time = get_global_done_wait_time()
+        return self._GLOBAL_DONE.wait(wait_time)
 
     def wait(self, timeout):
         """Calling thread waits for a given number of milliseconds or
