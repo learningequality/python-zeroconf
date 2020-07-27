@@ -101,6 +101,10 @@ See examples directory for more.
 Changelog
 =========
 
+0.19.10
+-------
+Reduce (and make configurable) the _GLOBAL_DONE threading wait time to improve discovery.
+
 0.19.9
 ------
 Turn _GLOBAL_DONE into a threading Event to allow for better interruptability at close.

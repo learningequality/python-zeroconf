@@ -42,7 +42,7 @@ import enum_compat as enum
 
 __author__ = "Paul Scott-Murphy, William McBrine"
 __maintainer__ = "Jamie Alexandre <jamie@learningequality.org>"
-__version__ = "0.19.9"
+__version__ = "0.19.10"
 __license__ = "LGPL"
 
 
