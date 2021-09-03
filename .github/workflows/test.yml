@@ -74,11 +74,12 @@ jobs:
   windows:
     name: Python unit tests on Windows Server
     needs: pre_job
-    runs-on: windows-latest
     strategy:
       max-parallel: 5
       matrix:
         python-version: [3.6]
+        windows-version: ["windows-latest", "windows-2016"]
+    runs-on: ${{ matrix.windows-version }}
 
     steps:
     - uses: actions/checkout@v2
