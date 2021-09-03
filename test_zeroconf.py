@@ -416,7 +416,7 @@ class Names(unittest.TestCase):
 
         # pop the big chunk off the end of the data and send on a closed socket
         out.data.pop()
-        zc._GLOBAL_DONE = False
+        zc._GLOBAL_DONE = Event()
 
         # mock the zeroconf logger and check for the correct logging backoff
         call_counts = mocked_log_warn.call_count, mocked_log_debug.call_count

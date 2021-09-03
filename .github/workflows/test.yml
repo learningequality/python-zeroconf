@@ -1,0 +1,102 @@
+name: Python tests
+
+on: [push, pull_request]
+
+jobs:
+  pre_job:
+    name: Path match check
+    runs-on: ubuntu-latest
+    # Map a step output to a job output
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@master
+        with:
+          github_token: ${{ github.token }}
+          paths: '["**.py", "requirements-test.txt", ".github/workflows/test.yml"]'
+  unit_test:
+    name: Python unit tests
+    needs: pre_job
+    runs-on: ubuntu-18.04
+    strategy:
+      max-parallel: 5
+      matrix:
+        python-version: [2.7, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      if: ${{ needs.pre_job.outputs.should_skip != 'true' }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - uses: actions/cache@v2
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements-test.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    - name: Install dependencies
+      if: ${{ needs.pre_job.outputs.should_skip != 'true' }}
+      run: pip install -r requirements-test.txt
+    - name: Test
+      if: ${{ needs.pre_job.outputs.should_skip != 'true' }}
+      run: nosetests -v
+  macos:
+    name: Python unit tests on Mac OS
+    needs: pre_job
+    runs-on: macos-latest
+    strategy:
+      max-parallel: 5
+      matrix:
+        python-version: [3.6]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      if: ${{ needs.pre_job.outputs.should_skip != 'true' }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - uses: actions/cache@v2
+      with:
+        path: ~/Library/Caches/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements-test.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    - name: Install dependencies
+      if: ${{ needs.pre_job.outputs.should_skip != 'true' }}
+      run: pip install -r requirements-test.txt
+    - name: Test
+      if: ${{ needs.pre_job.outputs.should_skip != 'true' }}
+      run: nosetests -v
+  windows:
+    name: Python unit tests on Windows Server
+    needs: pre_job
+    strategy:
+      max-parallel: 5
+      matrix:
+        python-version: [3.6]
+        windows-version: ["windows-latest", "windows-2016"]
+    runs-on: ${{ matrix.windows-version }}
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      if: ${{ needs.pre_job.outputs.should_skip != 'true' }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - uses: actions/cache@v2
+      with:
+        path: ~\AppData\Local\pip\Cache
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements-test.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    - name: Install dependencies
+      if: ${{ needs.pre_job.outputs.should_skip != 'true' }}
+      run: pip install -r requirements-test.txt
+    - name: Test
+      if: ${{ needs.pre_job.outputs.should_skip != 'true' }}
+      run: nosetests -v
