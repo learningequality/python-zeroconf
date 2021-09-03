@@ -34,7 +34,10 @@ import threading
 import time
 from functools import reduce
 
-import ifcfg
+# Use ifaddr instead of ifcfg in order to ensure that we are always
+# able to read outgoing addresses. ifcfg fails to do so on Windows
+# in a non-English locale. This is critical for many of our users.
+import ifaddr
 from six import binary_type, indexbytes, int2byte, iteritems, text_type
 from six.moves import xrange
 
@@ -1712,8 +1715,8 @@ if "ANDROID_ARGUMENT" in os.environ:
 
     AndroidString = autoclass("java.lang.String")
 
-    def get_network_interfaces():
-        interfaces = []
+    def get_all_addresses():
+        addresses = []
         try:
             NetworkInterface = autoclass("java.net.NetworkInterface")
             Inet4Address = autoclass("java.net.Inet4Address")
@@ -1726,28 +1729,16 @@ if "ANDROID_ARGUMENT" in os.environ:
                     # There are no methods for checking IP address type, so check object type.
                     address = ip.getHostAddress()
                     if isinstance(ip, Inet4Address):
-                        interfaces.append({"inet": address, "inet6": ""})
-                    else:
-                        interfaces.append({"inet": "", "inet6": address})
+                        addresses.append(address)
         except Exception as e:
             return []
 
-        return interfaces
-
+        return addresses
 
 else:
 
-    def get_network_interfaces():
-        try:
-            return ifcfg.interfaces().values()
-        except:  # ifcfg throws an Exception if the ip/ifconfig commands are not found
-            return []
-
-
-def get_all_addresses():
-    return list(
-        set(iface["inet"] for iface in get_network_interfaces() if iface["inet"])
-    )
+    def get_all_addresses():
+        return list(set(addr.ip for iface in ifaddr.get_adapters() for addr in iface.ips if addr.is_IPv4))
 
 
 def normalize_interface_choice(choice):

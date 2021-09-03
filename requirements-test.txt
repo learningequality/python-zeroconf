@@ -1,4 +1,4 @@
 mock
 nose
 six
-ifcfg
+ifaddr
