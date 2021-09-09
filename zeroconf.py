@@ -37,7 +37,13 @@ from functools import reduce
 # Use ifaddr instead of ifcfg in order to ensure that we are always
 # able to read outgoing addresses. ifcfg fails to do so on Windows
 # in a non-English locale. This is critical for many of our users.
-import ifaddr
+# On Android if certain so files are not properly bundled, this can
+# lead to an import error, so we catch it so that we can carry on with
+# our own Android specific code.
+try:
+    import ifaddr
+except ImportError:
+    ifaddr = None
 from six import binary_type, indexbytes, int2byte, iteritems, text_type
 from six.moves import xrange
 
@@ -45,7 +51,7 @@ import enum_compat as enum
 
 __author__ = "Paul Scott-Murphy, William McBrine"
 __maintainer__ = "Jamie Alexandre <jamie@learningequality.org>"
-__version__ = "0.19.11"
+__version__ = "0.19.12"
 __license__ = "LGPL"
 
 
@@ -1738,6 +1744,10 @@ if "ANDROID_ARGUMENT" in os.environ:
 else:
 
     def get_all_addresses():
+        if ifaddr is None:
+            # This should never happen, as we have only seen this happen on Android
+            # but better to be safe than sorry.
+            return []
         return list(set(addr.ip for iface in ifaddr.get_adapters() for addr in iface.ips if addr.is_IPv4))
 
 
