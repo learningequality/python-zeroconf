@@ -11,4 +11,7 @@ Thumbs.db
 .cache
 *.egg-info
 env/
+venv/
 dist/
+.idea/
+*.iml

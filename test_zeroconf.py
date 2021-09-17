@@ -395,7 +395,7 @@ class Names(unittest.TestCase):
 
         # force a receive of an oversized packet
         packet = out.packet()
-        s = zc._respond_sockets[0]
+        s = list(zc._respond_sockets.values())[0]
 
         # mock the zeroconf logger and check for the correct logging backoff
         call_counts = mocked_log_warn.call_count, mocked_log_debug.call_count
@@ -907,6 +907,14 @@ class ListenerTest(unittest.TestCase):
             zeroconf_registrar.close()
             zeroconf_browser.remove_service_listener(listener)
             zeroconf_browser.close()
+
+
+def test_add_remove_interfaces():
+    zeroconf_browser = Zeroconf(interfaces=[])
+    zeroconf_browser.update_interfaces(interfaces=["127.0.0.1"])
+    zeroconf_browser.update_interfaces(interfaces=["127.0.1.1"])
+    zeroconf_browser.update_interfaces(interfaces=[])
+    zeroconf_browser.close()
 
 
 def test_integration():

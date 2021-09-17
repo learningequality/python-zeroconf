@@ -1333,7 +1333,8 @@ class ServiceBrowser(RecordUpdateListener, threading.Thread):
 
     def __init__(self, zc, type_, handlers=None, listener=None):
         """Creates a browser for a specific type"""
-        assert handlers or listener, "You need to specify at least one handler"
+        if not handlers and not listener:
+            raise AssertionError("You need to specify at least one handler")
         if not type_.endswith(service_type_name(type_)):
             raise BadTypeInNameException
         threading.Thread.__init__(self, name="zeroconf-ServiceBrowser_" + type_)
@@ -1794,12 +1795,18 @@ def new_socket():
 
 
 def get_errno(e):
-    assert isinstance(e, socket.error)
-    return e.args[0]
+    if isinstance(e, (OSError, socket.error,)):
+        return e.errno
+    try:
+        return e.args[0]
+    except IndexError:
+        return None
+
 
 def get_global_done_wait_time():
     wait_time = os.getenv('PYTHON_ZEROCONF_GLOBAL_DONE_WAIT_TIME')
     return float(wait_time) if wait_time else 0.001
+
 
 class Zeroconf(QuietLogger):
 
@@ -1818,41 +1825,10 @@ class Zeroconf(QuietLogger):
         self._GLOBAL_DONE = threading.Event()
 
         self._listen_socket = new_socket()
-        interfaces = normalize_interface_choice(interfaces)
+        self.interfaces = []
+        self._respond_sockets = {}
 
-        self._respond_sockets = []
-
-        for i in interfaces:
-            log.debug("Adding %r to multicast group", i)
-            try:
-                self._listen_socket.setsockopt(
-                    socket.IPPROTO_IP,
-                    socket.IP_ADD_MEMBERSHIP,
-                    socket.inet_aton(_MDNS_ADDR) + socket.inet_aton(i),
-                )
-            except socket.error as e:
-                if get_errno(e) == errno.EADDRINUSE:
-                    log.info(
-                        "Address in use when adding %s to multicast group, "
-                        "it is expected to happen on some systems",
-                        i,
-                    )
-                elif get_errno(e) == errno.EADDRNOTAVAIL:
-                    log.info(
-                        "Address not available when adding %s to multicast "
-                        "group, it is expected to happen on some systems",
-                        i,
-                    )
-                    continue
-                else:
-                    raise
-
-            respond_socket = new_socket()
-            respond_socket.setsockopt(
-                socket.IPPROTO_IP, socket.IP_MULTICAST_IF, socket.inet_aton(i)
-            )
-
-            self._respond_sockets.append(respond_socket)
+        self._add_interfaces(normalize_interface_choice(interfaces))
 
         self.listeners = []
         self.browsers = {}
@@ -1932,11 +1908,78 @@ class Zeroconf(QuietLogger):
         Zeroconf will then respond to requests for information for that
         service."""
 
-        assert self.services[info.name.lower()] is not None
+        if info.name.lower() not in self.services:
+            raise AssertionError("Cannot update a service that doesn't exist")
 
         self.services[info.name.lower()] = info
 
         self._broadcast_service(info, ttl=ttl)
+
+    def update_interfaces(self, interfaces=InterfaceChoice.All):
+        """Updates the interface addresses on which Zeroconf is listening and broadcasting"""
+        interfaces = normalize_interface_choice(interfaces)
+        self._remove_interfaces([i for i in self.interfaces if i not in interfaces])
+        self._add_interfaces([i for i in interfaces if i not in self.interfaces])
+
+    def _add_interfaces(self, interfaces):
+        for i in interfaces:
+            log.debug("Adding %r to multicast group", i)
+            try:
+                self._listen_socket.setsockopt(
+                    socket.IPPROTO_IP,
+                    socket.IP_ADD_MEMBERSHIP,
+                    socket.inet_aton(_MDNS_ADDR) + socket.inet_aton(i),
+                )
+            except socket.error as e:
+                if get_errno(e) == errno.EADDRINUSE:
+                    log.info(
+                        "Address in use when adding %s to multicast group, "
+                        "it is expected to happen on some systems",
+                        i,
+                    )
+                elif get_errno(e) == errno.EADDRNOTAVAIL:
+                    log.info(
+                        "Address not available when adding %s to multicast "
+                        "group, it is expected to happen on some systems",
+                        i,
+                    )
+                    continue
+                else:
+                    raise
+
+            respond_socket = new_socket()
+            respond_socket.setsockopt(
+                socket.IPPROTO_IP, socket.IP_MULTICAST_IF, socket.inet_aton(i)
+            )
+
+            self._respond_sockets[i] = respond_socket
+            self.interfaces.append(i)
+
+    def _remove_interfaces(self, interfaces):
+        for i in interfaces:
+            if i not in self.interfaces:
+                continue
+
+            log.debug("Removing %r from multicast group", i)
+
+            # remove respond socket and close it
+            respond_socket = self._respond_sockets.pop(i, None)
+            if respond_socket:
+                respond_socket.close()
+
+            self.interfaces.remove(i)
+
+            try:
+                self._listen_socket.setsockopt(
+                    socket.IPPROTO_IP,
+                    socket.IP_DROP_MEMBERSHIP,
+                    socket.inet_aton(_MDNS_ADDR) + socket.inet_aton(i),
+                )
+            except socket.error as e:
+                if get_errno(e) in (errno.EADDRNOTAVAIL, errno.ENETUNREACH):
+                    continue
+                else:
+                    raise
 
     def _broadcast_service(self, info, ttl=_DNS_TTL):
 
@@ -2281,7 +2324,7 @@ class Zeroconf(QuietLogger):
             )
             return
         log.debug("Sending %r (%d bytes) as %r...", out, len(packet), packet)
-        for s in self._respond_sockets:
+        for interface, s in self._respond_sockets.items():
             if self._GLOBAL_DONE.is_set():
                 return
             try:
@@ -2290,9 +2333,12 @@ class Zeroconf(QuietLogger):
                     USE_IP_OF_OUTGOING_INTERFACE, outgoing_ip
                 )
                 bytes_sent = s.sendto(socket_packet, 0, (addr, port))
-            except Exception:  # TODO stop catching all Exceptions
-                # on send errors, log the exception and keep going
-                self.log_exception_warning()
+            except Exception as e:  # TODO stop catching all Exceptions
+                if get_errno(e) == errno.ENETUNREACH:
+                    self.log_warning_once("Network unreachable on interface {}".format(interface))
+                else:
+                    # on send errors, log the exception and keep going
+                    self.log_exception_warning()
             else:
                 if bytes_sent != len(socket_packet):
                     self.log_warning_once(
@@ -2317,5 +2363,5 @@ class Zeroconf(QuietLogger):
             # shutdown the rest
             self.notify_all()
             self.reaper.join()
-            for s in self._respond_sockets:
+            for s in self._respond_sockets.values():
                 s.close()
