@@ -909,34 +909,6 @@ class ListenerTest(unittest.TestCase):
             zeroconf_browser.close()
 
 
-# def test_add_remove_interfaces():
-#     type_ = "_http._tcp.local."
-#     registration_name = "xxxyyy.%s" % type_
-#     desc = {"path": "/~test/"}
-#     info = ServiceInfo(
-#         type_,
-#         registration_name,
-#         socket.inet_aton("10.0.1.2"),
-#         80,
-#         0,
-#         0,
-#         desc,
-#         "ash-2.local.",
-#     )
-#
-#     zeroconf = None
-#     try:
-#         zeroconf = Zeroconf(interfaces=[])
-#         zeroconf.register_service(info)
-#         zeroconf.update_interfaces(interfaces=["127.0.0.1"])
-#         zeroconf.update_interfaces(interfaces=["127.0.1.1"])
-#         zeroconf.update_interfaces(interfaces=[])
-#         zeroconf.close()
-#
-#     finally:
-#         if zeroconf:
-#             zeroconf.close()
-
 def _init_zeroconf_browser(service_type, registration_name):
     service_added = Event()
     service_removed = Event()
