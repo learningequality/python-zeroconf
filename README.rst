@@ -101,6 +101,16 @@ See examples directory for more.
 Changelog
 =========
 
+0.19.13
+-------
+* Converts some usage of `assert` that should likely persist if `python -O` is used
+* Breaks out interface attachment from `Zeroconf.__init__` into its own method `_add_interfaces`
+* Adds corresponding behavior for removing interfaces, along the lines of how `_add_interfaces` functions but in reverse
+* Exposes new public method `Zeroconf.update_interfaces` which triggers add or removal of interfaces
+* Prevents stack trace reporting of errors that occur because the network is unreachable, `errno.ENETUNREACH`
+* Updates `Zeroconf.send` to accept an `interface` on which filter the interfaces it sends the messages on,
+  such that adding and removing interfaces can attempt to send add/remove messages when the interface is removed
+
 0.19.10
 -------
 Reduce (and make configurable) the _GLOBAL_DONE threading wait time to improve discovery.

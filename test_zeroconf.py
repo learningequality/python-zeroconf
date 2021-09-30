@@ -395,7 +395,7 @@ class Names(unittest.TestCase):
 
         # force a receive of an oversized packet
         packet = out.packet()
-        s = zc._respond_sockets[0]
+        s = list(zc._respond_sockets.values())[0]
 
         # mock the zeroconf logger and check for the correct logging backoff
         call_counts = mocked_log_warn.call_count, mocked_log_debug.call_count
@@ -636,7 +636,7 @@ class TestRegistrar(unittest.TestCase):
         nbr_additionals = [0, None]
         nbr_authorities = [0, None]
 
-        def send(out, addr=r._MDNS_ADDR, port=r._MDNS_PORT):
+        def send(out, addr=r._MDNS_ADDR, port=r._MDNS_PORT, interface=None):
             """Sends an outgoing packet."""
             for answer, time_ in out.answers:
                 nbr_answers[0] += 1
@@ -647,7 +647,7 @@ class TestRegistrar(unittest.TestCase):
             for answer in out.authorities:
                 nbr_authorities[0] += 1
                 assert answer.ttl == expected_ttl
-            old_send(out, addr=addr, port=port)
+            old_send(out, addr=addr, port=port, interface=interface)
 
         # monkey patch the zeroconf send
         zc.send = send
@@ -909,14 +909,9 @@ class ListenerTest(unittest.TestCase):
             zeroconf_browser.close()
 
 
-def test_integration():
+def _init_zeroconf_browser(service_type, registration_name):
     service_added = Event()
     service_removed = Event()
-    unexpected_ttl = Event()
-    got_query = Event()
-
-    type_ = "_http._tcp.local."
-    registration_name = "xxxyyy.%s" % type_
 
     def on_service_state_change(zeroconf, service_type, state_change, name):
         if name == registration_name:
@@ -926,6 +921,73 @@ def test_integration():
                 service_removed.set()
 
     zeroconf_browser = Zeroconf(interfaces=["127.0.0.1"])
+    browser = ServiceBrowser(zeroconf_browser, service_type, [on_service_state_change])
+    zeroconf_browser.browsers["test"] = browser
+    return zeroconf_browser, service_added, service_removed
+
+
+def test_add_remove_interfaces_integration():
+    type_ = "_http._tcp.local."
+    registration_name = "xxxyyy.%s" % type_
+
+    zeroconf_browser, service_added, service_removed = _init_zeroconf_browser(type_, registration_name)
+
+    expected_ttl = r._DNS_TTL
+    time_offset = 0
+
+    def current_time_millis():
+        """Current system time in milliseconds"""
+        return time.time() * 1000 + time_offset * 1000
+
+    # monkey patch the zeroconf current_time_millis
+    r.current_time_millis = current_time_millis
+
+    zeroconf_registrar = Zeroconf(interfaces=[])
+    desc = {"path": "/~paulsm/"}
+    info = ServiceInfo(
+        type_,
+        registration_name,
+        socket.inet_aton("10.0.1.2"),
+        80,
+        0,
+        0,
+        desc,
+        "ash-2.local.",
+    )
+    zeroconf_registrar.register_service(info)
+
+    try:
+        # no interfaces have been added yet, so nothing to register that our service has been added yet
+        service_added.wait(1)
+        assert not service_added.is_set()
+
+        zeroconf_registrar.update_interfaces(interfaces=["127.0.0.1"])
+        zeroconf_browser.notify_all()
+
+        # make sure we got the service added event, which could take as long as the TTL to happen
+        service_added.wait(expected_ttl)
+        assert service_added.is_set()
+
+        # now remove the interface to trigger removal event
+        assert not service_removed.is_set()
+        zeroconf_registrar.update_interfaces(interfaces=[])
+        zeroconf_browser.notify_all()
+
+        service_removed.wait(expected_ttl)
+        assert service_removed.is_set()
+    finally:
+        zeroconf_registrar.close()
+        zeroconf_browser.close()
+
+
+def test_integration():
+    unexpected_ttl = Event()
+    got_query = Event()
+
+    type_ = "_http._tcp.local."
+    registration_name = "xxxyyy.%s" % type_
+
+    zeroconf_browser, service_added, service_removed = _init_zeroconf_browser(type_, registration_name)
 
     # we are going to monkey patch the zeroconf send to check packet sizes
     old_send = zeroconf_browser.send
@@ -941,7 +1003,7 @@ def test_integration():
     # needs to be a list so that we can modify it in our phony send
     nbr_queries = [0, None]
 
-    def send(out, addr=r._MDNS_ADDR, port=r._MDNS_PORT):
+    def send(out, addr=r._MDNS_ADDR, port=r._MDNS_PORT, interface=None):
         """Sends an outgoing packet."""
         pout = r.DNSIncoming(out.packet())
 
@@ -951,18 +1013,13 @@ def test_integration():
                 unexpected_ttl.set()
 
         got_query.set()
-        old_send(out, addr=addr, port=port)
+        old_send(out, addr=addr, port=port, interface=interface)
 
     # monkey patch the zeroconf send
     zeroconf_browser.send = send
 
     # monkey patch the zeroconf current_time_millis
     r.current_time_millis = current_time_millis
-
-    service_added = Event()
-    service_removed = Event()
-
-    browser = ServiceBrowser(zeroconf_browser, type_, [on_service_state_change])
 
     zeroconf_registrar = Zeroconf(interfaces=["127.0.0.1"])
     desc = {"path": "/~paulsm/"}
@@ -997,5 +1054,4 @@ def test_integration():
         zeroconf_registrar.close()
         service_removed.wait(1)
         assert service_removed.is_set()
-        browser.cancel()
         zeroconf_browser.close()
