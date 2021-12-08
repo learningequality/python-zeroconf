@@ -50,8 +50,8 @@ from six.moves import xrange
 import enum_compat as enum
 
 __author__ = "Paul Scott-Murphy, William McBrine"
-__maintainer__ = "Jamie Alexandre <jamie@learningequality.org>"
-__version__ = "0.19.13"
+__maintainer__ = "Learning Equality <info@learningequality.org>"
+__version__ = "0.19.14"
 __license__ = "LGPL"
 
 
@@ -1749,7 +1749,7 @@ else:
             # This should never happen, as we have only seen this happen on Android
             # but better to be safe than sorry.
             return []
-        return list(set(addr.ip for iface in ifaddr.get_adapters() for addr in iface.ips if addr.is_IPv4))
+        return list(set(addr.ip for iface in ifaddr.get_adapters() for addr in iface.ips if addr.is_IPv4 and not addr.ip.startswith("169.254")))
 
 
 def normalize_interface_choice(choice):
