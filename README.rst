@@ -101,6 +101,11 @@ See examples directory for more.
 Changelog
 =========
 
+0.19.15
+-------
+- Track all requested broadcast interfaces in addition to those successfully attached
+
+
 0.19.14
 -------
 - Exclude addresses starting with "169.254" from the list returned by get_all_addresses()
