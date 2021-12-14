@@ -1831,6 +1831,7 @@ class Zeroconf(QuietLogger):
 
         self._listen_socket = new_socket()
         self.interfaces = []
+        self.active_interfaces = []
         self._respond_sockets = {}
 
         self.listeners = []
@@ -1930,6 +1931,7 @@ class Zeroconf(QuietLogger):
         """Attaches the listen socket to the interface and creates a new socket to send messages on the interface"""
         for i in interfaces:
             log.debug("Adding %r to multicast group", i)
+            self.interfaces.append(i)
             try:
                 # attach listener socket to the interface
                 self._listen_socket.setsockopt(
@@ -1960,7 +1962,7 @@ class Zeroconf(QuietLogger):
             )
 
             self._respond_sockets[i] = respond_socket
-            self.interfaces.append(i)
+            self.active_interfaces.append(i)
 
             # immediate broadcast to these interfaces for services already registered
             for service_info in self.services.values():
@@ -1973,7 +1975,9 @@ class Zeroconf(QuietLogger):
         """
 
         for i in interfaces:
-            if i not in self.interfaces:
+            if i not in self.active_interfaces:
+                if i in self.interfaces:
+                    self.interfaces.remove(i)
                 continue
 
             # send out unregister event to these interfaces, if possible
@@ -1988,6 +1992,7 @@ class Zeroconf(QuietLogger):
                 respond_socket.close()
 
             self.interfaces.remove(i)
+            self.active_interfaces.remove(i)
 
             # remove listener socket attachment to th interface
             try:
