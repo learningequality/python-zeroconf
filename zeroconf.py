@@ -1386,6 +1386,11 @@ class ServiceBrowser(RecordUpdateListener, threading.Thread):
 
         Updates information required by browser in the Zeroconf cache."""
 
+        # if the record name does not end with the service type we're listening for,
+        # we'll ignore the update
+        if not record.name.endswith(self.type):
+            return
+
         def enqueue_callback(state_change, name):
             self._handlers_to_call.append(
                 lambda zeroconf: self._service_state_changed.fire(
@@ -1396,7 +1401,7 @@ class ServiceBrowser(RecordUpdateListener, threading.Thread):
                 )
             )
 
-        if record.type == _TYPE_PTR and record.name == self.type:
+        if record.type == _TYPE_PTR:
             expired = record.is_expired(now)
             service_key = record.alias.lower()
             try:
@@ -1417,7 +1422,7 @@ class ServiceBrowser(RecordUpdateListener, threading.Thread):
             if expires < self.next_time:
                 self.next_time = expires
 
-        elif record.type == _TYPE_TXT and record.name == self.type:
+        elif record.type == _TYPE_TXT:
             assert isinstance(record, DNSText)
             expired = record.is_expired(now)
             if not expired:
