@@ -1721,40 +1721,12 @@ class ZeroconfServiceTypes(object):
         return tuple(sorted(listener.found_services))
 
 
-if "ANDROID_ARGUMENT" in os.environ:
-
-    from jnius import autoclass
-
-    AndroidString = autoclass("java.lang.String")
-
-    def get_all_addresses():
-        addresses = []
-        try:
-            NetworkInterface = autoclass("java.net.NetworkInterface")
-            Inet4Address = autoclass("java.net.Inet4Address")
-            ifaces = NetworkInterface.getNetworkInterfaces()
-            while ifaces and ifaces.hasMoreElements():
-                iface = ifaces.nextElement()
-                ips = iface.getInetAddresses()
-                while ips and ips.hasMoreElements():
-                    ip = ips.nextElement()
-                    # There are no methods for checking IP address type, so check object type.
-                    address = ip.getHostAddress()
-                    if isinstance(ip, Inet4Address):
-                        addresses.append(address)
-        except Exception as e:
-            return []
-
-        return addresses
-
-else:
-
-    def get_all_addresses():
-        if ifaddr is None:
-            # This should never happen, as we have only seen this happen on Android
-            # but better to be safe than sorry.
-            return []
-        return list(set(addr.ip for iface in ifaddr.get_adapters() for addr in iface.ips if addr.is_IPv4 and not addr.ip.startswith("169.254")))
+def get_all_addresses():
+    if ifaddr is None:
+        # This should never happen, as we have only seen this happen on Android
+        # but better to be safe than sorry.
+        return []
+    return list(set(addr.ip for iface in ifaddr.get_adapters() for addr in iface.ips if addr.is_IPv4 and not addr.ip.startswith("169.254")))
 
 
 def normalize_interface_choice(choice):
