@@ -51,7 +51,7 @@ import enum_compat as enum
 
 __author__ = "Paul Scott-Murphy, William McBrine"
 __maintainer__ = "Learning Equality <info@learningequality.org>"
-__version__ = "0.19.16"
+__version__ = "0.19.17"
 __license__ = "LGPL"
 
 
